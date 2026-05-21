@@ -1,0 +1,30 @@
+DATA=DB15K
+EMB_DIM=250
+NUM_BATCH=1024
+MARGIN=12
+LR=1e-4
+LRG=1e-4
+NEG_NUM=128
+MU=0.0001
+EPOCH=1000
+ADV=1
+USE_MCPACE=1
+MCPACE_MU=0.1
+MCPACE_BLOCKS=4
+MCPACE_LAMBDA_ALPHA=1.0
+
+CUDA_VISIBLE_DEVICES=0 nohup python run_adv_wgan_gp_3modal.py -dataset=$DATA \
+  -batch_size=$NUM_BATCH \
+  -margin=$MARGIN \
+  -epoch=$EPOCH \
+  -dim=$EMB_DIM \
+  -adv_num=$ADV \
+  -save=$DATA-$NUM_BATCH-$EMB_DIM-$NEG_NUM-$MU-$MARGIN-$LR-$EPOCH \
+  -neg_num=$NEG_NUM \
+  -mu=$MU \
+  -learning_rate=$LR \
+  -lrg=$LRG \
+  -use_mcpace=$USE_MCPACE \
+  -mcpace_mu=$MCPACE_MU \
+  -mcpace_blocks=$MCPACE_BLOCKS \
+  -mcpace_lambda_alpha=$MCPACE_LAMBDA_ALPHA > $DATA-$EMB_DIM-$NUM_BATCH-$NEG_NUM-$MU-$MARGIN-$LR-$EPOCH.txt &
