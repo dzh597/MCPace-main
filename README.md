@@ -1,21 +1,19 @@
-# NativE + MCPace: Multi-modal Knowledge Graph Completion in the Wild
+# MCPace: Modality Coordination Plane-guided Gradient Coordination for Balanced Multimodal Knowledge Graph Completion
 
-![version](https://img.shields.io/badge/version-1.1.0-blue)
+
 ![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
-![SIGIR 2024](https://img.shields.io/badge/SIGIR-2024-%23bd9f65?labelColor=%2377BBDD&color=3388bb)
 
-This repository contains the implementation of **NativE: Multi-modal Knowledge Graph Completion in the Wild** and an extended implementation of **MCPace**, a gradient-space modality coordination module for multi-modal knowledge graph completion (MMKGC).
 
-- Paper: [NativE: Multi-modal Knowledge Graph Completion in the Wild (ACM Digital Library)](https://dl.acm.org/doi/abs/10.1145/3626772.3657800)
-- Preprint: [NativE: Multi-modal Knowledge Graph Completion in the Wild (arXiv)](https://arxiv.org/abs/2406.17605)
+This repository contains the implementation of **MCPace: Modality Coordination Plane-guided Gradient Coordination for Balanced Multimodal Knowledge Graph Completion** and an extended implementation of **MCPace**, a gradient-space modality coordination module for multi-modal knowledge graph completion (MMKGC).
 
-> **Scope of this codebase.** The original NativE pipeline supports multiple WildKGC datasets. The MCPace extension currently supports the confirmed modalities `structure`, `visual`, and `textual`, and has been integrated into the DB15K, MKG-W, and MKG-Y training paths.
+
+> **Scope of this codebase.** The original MCPace pipeline supports multiple WildKGC datasets. The MCPace extension currently supports the confirmed modalities `structure`, `visual`, and `textual`, and has been integrated into the DB15K, MKG-W, and MKG-Y training paths.
 
 ---
 
 ## 1. Method Overview
 
-NativE addresses modality diversity and imbalance in MMKGC through relation-aware adaptive fusion and adversarial modality augmentation. This codebase further adds MCPace, which coordinates modalities in gradient space.
+MCPace addresses modality diversity and imbalance in MMKGC through relation-aware adaptive fusion and adversarial modality augmentation. This codebase further adds MCPace, which coordinates modalities in gradient space.
 
 MCPace includes the following components:
 
@@ -38,13 +36,10 @@ The current MCPace implementation modifies only the KGC/discriminator update. Th
 ├── args.py                         # Command-line arguments
 ├── run_adv_wgan_gp.py              # Main entry for MKG-W / MKG-Y
 ├── run_adv_wgan_gp_3modal.py       # Main entry for DB15K
-├── run_adv_wgan_gp_4modal.py       # Main entry for Kuai16K / TIVA
 ├── scripts/                        # Reproducible training scripts
 │   ├── run_db15k.sh
 │   ├── run_mkgw.sh
-│   ├── run_mkgy.sh
-│   ├── run_kvc16k.sh
-│   └── run_tiva.sh
+│   ├── run_mkgy.sh   
 ├── benchmarks/                     # Dataset triples and id mappings
 ├── embeddings/                     # Pre-trained multi-modal embeddings
 ├── checkpoint/                     # Saved model checkpoints
@@ -81,15 +76,15 @@ tqdm 4.64.1
 A typical installation is:
 
 ```bash
-conda create -n native python=3.8 -y
-conda activate native
+conda create -n MCPace python=3.8 -y
+conda activate MCPace
 pip install -r requirements.txt
 ```
 
 If you already have a prepared environment, activate it before running experiments. For example, in our local verification environment:
 
 ```bash
-conda activate lor
+conda activate MCPace
 ```
 
 ### 3.2 C++ Sampler
@@ -112,7 +107,6 @@ cd ..
 
 ## 4. Data and Embeddings
 
-### 4.1 Dataset Files
 
 Each dataset under `benchmarks/` follows the OpenKE-style format:
 
@@ -132,39 +126,9 @@ Supported datasets in this repository include:
 DB15K
 MKG-W
 MKG-Y
-Kuai16K
-TIVA
 ```
 
-### 4.2 Pre-trained Multi-modal Embeddings
 
-Download the pre-trained multi-modal embeddings from the original project release and place them under:
-
-```text
-embeddings/
-```
-
-Expected examples:
-
-```text
-DB15K-visual.pth
-DB15K-textual.pth
-DB15K-numeric.pth
-MKG-W-visual.pth
-MKG-W-textual.pth
-MKG-Y-visual.pth
-MKG-Y-textual.pth
-Kuai16K-visual.pth
-Kuai16K-textual.pth
-Kuai16K-audio.pth
-Kuai16K-video.pth
-TIVA-visual.pth
-TIVA-textual.pth
-TIVA-audio.pth
-TIVA-video.pth
-```
-
----
 
 ## 5. Training and Evaluation
 
@@ -191,7 +155,7 @@ MCPace coordinates:
 structure, visual, textual
 ```
 
-`numeric` remains part of the DB15K NativE fusion model, but it is not coordinated by MCPace in the current implementation.
+`numeric` remains part of the DB15K MCPace fusion model, but it is not coordinated by MCPace in the current implementation.
 
 ### 5.2 MKG-W with MCPace
 
@@ -216,16 +180,7 @@ bash scripts/run_mkgy.sh
 
 This script uses the same 2-modal training path as MKG-W.
 
-### 5.4 Kuai16K and TIVA
 
-The original training scripts are:
-
-```bash
-bash scripts/run_kvc16k.sh
-bash scripts/run_tiva.sh
-```
-
-MCPace is not yet enabled for these 4-modal paths by default. Their current implementation uses `run_adv_wgan_gp_4modal.py` and the corresponding 4-modal model/trainer logic.
 
 ---
 
@@ -261,17 +216,8 @@ MCPace-specific arguments:
 
 ---
 
-## 7. Reproducibility Notes
 
-- Random seeds are set in the main scripts via `torch.manual_seed(args.seed)` and `torch.cuda.manual_seed_all(args.seed)`.
-- The training dataloader uses the OpenKE-style C++ sampler in `mmkgc/release/Base.so`.
-- Checkpoints are saved to the path specified by `-save`.
-- Training logs are redirected by the shell scripts to dataset-specific `.txt` files.
-- MCPace computes additional gradients through `torch.autograd.grad`; therefore, enabling MCPace increases memory usage and training time.
-
----
-
-## 8. Implementation Details for MCPace
+## 7. Implementation Details for MCPace
 
 The MCPace integration follows this gradient correction workflow:
 
@@ -297,64 +243,11 @@ run_adv_wgan_gp.py
 run_adv_wgan_gp_3modal.py
 ```
 
----
 
-## 9. Troubleshooting
 
-### `ModuleNotFoundError: No module named 'torch'`
-
-Activate the correct environment before running:
-
-```bash
-conda activate <your-env-name>
-```
-
-### `OSError: cannot open shared object file: Base.so`
-
-Rebuild the C++ sampler:
-
-```bash
-cd mmkgc
-bash make.sh
-cd ..
-```
-
-### CUDA out-of-memory when MCPace is enabled
-
-Try reducing:
-
-```text
--batch_size
--neg_num
--mcpace_blocks
-```
-
-or disable MCPace with:
-
-```text
--use_mcpace=0
-```
 
 ---
 
-## 10. Citation
-
-If you use this codebase, please cite the original NativE paper:
-
-```bibtex
-@inproceedings{DBLP:conf/sigir/ZhangCGXHLZC24,
-  author    = {Yichi Zhang and Zhuo Chen and Lingbing Guo and Yajing Xu and
-               Binbin Hu and Ziqi Liu and Wen Zhang and Huajun Chen},
-  title     = {NativE: Multi-modal Knowledge Graph Completion in the Wild},
-  booktitle = {SIGIR},
-  pages     = {91--101},
-  publisher = {ACM},
-  year      = {2024}
-}
-```
-
----
-
-## 11. Acknowledgements
+## 8. Acknowledgements
 
 This codebase is built on the OpenKE-style KGC training pipeline. We thank the authors of NativE and the OpenKE community for their contributions to MMKGC and knowledge graph representation learning.

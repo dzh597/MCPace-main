@@ -106,8 +106,8 @@ class WCGTrainerDB15KGP(object):
             modal_context = self.model.model.get_mcpace_context()
             if modal_context is None:
                 raise RuntimeError(
-                    "MCPace is enabled, but the underlying model did not "
-                    "provide a modal context."
+                    "Gradient coordination is enabled, but the underlying "
+                    "model did not provide a modal context."
                 )
             self.mcpace.backward(loss, modal_context, lr=self.alpha)
         else:
@@ -187,7 +187,10 @@ class WCGTrainerDB15KGP(object):
             raise NotImplementedError
         print("Finish initializing...")
         if self.mcpace is not None:
-            print("MCPace is enabled for modalities: {}".format(self.mcpace.modalities))
+            coord_name = getattr(self.mcpace, "name", self.mcpace.__class__.__name__)
+            print("Gradient coordinator {} is enabled for modalities: {}".format(
+                coord_name, self.mcpace.modalities
+            ))
 
         training_range = tqdm(range(self.train_times))
         for epoch in training_range:

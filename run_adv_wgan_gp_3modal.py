@@ -6,6 +6,7 @@ from mmkgc.module.strategy import NegativeSamplingGP
 from mmkgc.data import TrainDataLoader, TestDataLoader
 from mmkgc.adv.modules import CombinedGenerator3
 from mmkgc.module.mcpace import MCPaceCoordinator
+from mmkgc.module.grad_baselines import build_gradient_baseline_from_args
 
 from args import get_args
 
@@ -56,11 +57,16 @@ if __name__ == "__main__":
         structure_dim=2*args.dim,
         img_dim=3*args.dim
     )
+    modalities = ["structure", "visual", "textual"]
     mcpace = None
+    grad_method = args.grad_method.lower()
+    if args.use_mcpace and grad_method not in ("none", "", "null"):
+        raise ValueError("Use either MCPace (-use_mcpace 1) or one gradient baseline "
+                         "(-grad_method ...), not both.")
     if args.use_mcpace:
         mcpace = MCPaceCoordinator(
             rel_tot=train_dataloader.get_rel_tot(),
-            modalities=["structure", "visual", "textual"],
+            modalities=modalities,
             mu=args.mcpace_mu,
             num_blocks=args.mcpace_blocks,
             lambda_alpha=args.mcpace_lambda_alpha,
@@ -69,6 +75,8 @@ if __name__ == "__main__":
             max_rebalance=args.mcpace_max_rebalance,
             log_interval=args.mcpace_log_interval,
         )
+    elif grad_method not in ("none", "", "null"):
+        mcpace = build_gradient_baseline_from_args(args, modalities=modalities)
     # train the model
     trainer = WCGTrainerDB15KGP(
         model=model,
